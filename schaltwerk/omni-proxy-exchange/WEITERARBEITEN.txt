@@ -1,0 +1,418 @@
+SCHALTWERK — OmniRoute Proxy-Austausch
+Übergabe für Weiterarbeit
+Stand: 2026-08-12
+Plattform-Ziel: Windows 10 (läuft auch unter Linux)
+Sprache der Oberfläche: Deutsch
+
+
+══════════════════════════════════════════════════════════════════
+WAS DAS IST
+══════════════════════════════════════════════════════════════════
+
+Kleines lokales Werkzeug (Browser-UI + Python-Server), das
+
+  1. freie Proxies aus öffentlichen Listen holt,
+  2. sie selbst prüft (echte HTTPS-Ziele hinter dem Proxy),
+  3. den OmniRoute-Bestand liest und tote eigene Einträge entfernt,
+  4. lebendige Proxies als NORMALE manuelle Registry-Proxies
+     nach OmniRoute schreibt.
+
+Es ist kein OmniRoute-Plugin und kein Fork. Es spricht nur die
+öffentlichen Management-APIs von OmniRoute an.
+
+
+══════════════════════════════════════════════════════════════════
+ÄNDERUNGEN
+══════════════════════════════════════════════════════════════════
+
+Die versionierte Änderungshistorie steht in CHANGELOG.md (neben
+dieser Datei) — neueste oben, mit SemVer-Versionsnummern.
+
+Letzter Stand (2026-08-12, 1.0.0) in Kürze:
+
+  • NEU „Provider zuordnen“ (POST /api/assign-providers): px-*-Proxies
+    den installierten Providern zuordnen + Rück-Verifikation im Log.
+  • FIX Typ-Auswahl in /api/exchange: angekreuzte Typen fließen durch
+    Harvest, Kandidaten-Filter und Upload.
+  • NEU Durchsichtigkeit: [job]-Zeilen in der Konsole, GET /api/job-status,
+    UI holt Status nach SSE-Abriss, harte Deadline pro Einzel-Check.
+
+Künftige Änderungen bitte NUR in CHANGELOG.md eintragen, nicht hier.
+
+
+══════════════════════════════════════════════════════════════════
+WARUM SO UND NICHT ANDERS  (nicht ändern, ohne zu wissen warum)
+══════════════════════════════════════════════════════════════════
+
+1) NIE in die 1proxy-/Free-Kategorie schreiben
+   OmniRoute hat zwei Töpfe:
+     source=oneproxy  → Marketplace / Free-Proxies  → kostet Credits
+     source=manual    → normales Register            → keine Credits
+   Wir schreiben ausschließlich per
+     POST /api/v1/management/proxies
+   Das legt source=manual an (Default der Registry).
+   GET  /api/settings/oneproxy  wird nur gelesen und geprüft.
+   POST /api/settings/oneproxy  (Sync) wird NICHT aufgerufen.
+   DELETE auf 1proxy-IDs wird NICHT gemacht.
+
+2) Eigene Benutzer-Proxies nicht anfassen
+   Nur Einträge mit notes enthaltend "proxy-exchange"
+   oder Name beginnend mit "px-" gelten als unser Pool.
+   Alles andere im manuellen Register bleibt unberührt.
+
+3) Typ (HTTP / HTTPS / SOCKS5) muss stimmen
+   OmniRoute verlangt beim Anlegen denselben Dialekt, den der
+   Proxy wirklich spricht. Falsch gesetzt = tot, auch bei richtiger IP.
+     HTTP   = klassischer Proxy, CONNECT-Tunnel zu https://…
+     HTTPS  = der Proxy SELBST spricht TLS (https://proxy:port)
+     SOCKS5 = anderer Dialekt, oft Port 1080
+   Listen schreiben oft „HTTPS“ und meinen nur „kann HTTPS-Seiten“.
+   Deshalb: deklarierten Typ zuerst prüfen, bei HTTPS-Listen
+   Fallback auf HTTP. Hochgeladen wird der Typ, der wirklich ging.
+   SOCKS4 kennt OmniRoute nicht — wird verworfen.
+   Standard-Häkchen: HTTP + HTTPS. SOCKS5 optional.
+
+4) Prüfung = Ziel-HTTPS, nicht nur TCP-Ping
+   OmniRoute schickt fast alles zu HTTPS-APIs (OpenAI, Anthropic…).
+   Ein Proxy, der nur Klartext-HTTP kann, ist für OmniRoute nutzlos.
+   Testziele: https://api.ipify.org , https://icanhazip.com
+   Fallback-Klartext nur zur Diagnose, wird nicht hochgeladen.
+
+5) Windows zuerst
+   Keine Linux-Pfade. APP_DIR = Ordner der Datei / der .exe.
+   Start über STARTEN.bat. Server auf Windows an 127.0.0.1,
+   damit die Firewall nicht extra nervt.
+
+
+══════════════════════════════════════════════════════════════════
+DATEIEN
+══════════════════════════════════════════════════════════════════
+
+  STARTEN.bat          Windows-Start: findet Python, pip install,
+                       startet server.py, öffnet den Browser.
+                       Konsole offen lassen, Ende mit Strg+C.
+
+  server.py            Alles Backend. FastAPI + httpx.
+                       Keine Datenbank, kein Login, Zustand im RAM.
+
+  static/index.html    Eine Datei, kein Build, keine CDN-Abhängigkeit.
+                       Oberfläche + CSS + JS.
+
+  requirements.txt     fastapi, uvicorn[standard], httpx[socks]
+
+  README.md            Kurzanleitung für den Benutzer.
+
+  WEITERARBEITEN.txt   Diese Datei.
+
+
+══════════════════════════════════════════════════════════════════
+START
+══════════════════════════════════════════════════════════════════
+
+Windows 10
+  Python 3.11+ mit „Add python.exe to PATH“.
+  Ordner irgendwo hinlegen, STARTEN.bat doppelklicken.
+  UI:  http://127.0.0.1:8765
+  OmniRoute muss parallel laufen: http://127.0.0.1:20128
+  In der UI: Management-API-Key mit manage-Scope
+  (OmniRoute-Dashboard → Endpoints).
+
+Linux / Entwicklung
+  pip install -r requirements.txt
+  python server.py
+  HOST=0.0.0.0 PORT=8765  überschreibbar.
+
+Eine fertige .exe gibt es nicht. Der Build-Rechner war Linux;
+PyInstaller würde hier kein Windows-Binary erzeugen.
+Wer eine .exe will: auf einem Windows-PC
+  pip install pyinstaller
+  pyinstaller --onefile --add-data "static;static" server.py
+resolve_app_dir() in server.py ist dafür schon vorbereitet
+(sys.frozen).
+
+
+══════════════════════════════════════════════════════════════════
+ARCHITEKTUR
+══════════════════════════════════════════════════════════════════
+
+  Browser  ──HTTP──►  Schaltwerk :8765  ──HTTP──►  öffentliche Listen
+                              │
+                              ├── GET/POST/DELETE ──► OmniRoute :20128
+                              │     /api/v1/management/proxies
+                              │     /api/settings/oneproxy   (nur GET)
+                              │
+                              └── Prüf-Requests durch jeden Proxy
+                                    zu api.ipify.org / icanhazip.com
+
+Kein persistenter Speicher. Nach Neustart ist der Harvest-Cache weg.
+Der OmniRoute-Bestand lebt in OmniRoute, nicht hier.
+
+
+══════════════════════════════════════════════════════════════════
+EIGENE HTTP-API  (server.py)
+══════════════════════════════════════════════════════════════════
+
+  GET  /                         UI
+  GET  /api/meta                 Quellen, Tag, ob ein Key gesetzt ist
+  POST /api/connect              { omni_url, api_key }
+                                 speichert in RAM, testet Registry
+  GET  /api/omni/inventory       teilt OmniRoute-Proxies in drei Töpfe:
+                                   harvest  = unser Pool (Tag/Name)
+                                   manual   = fremde manuelle, tabu
+                                   oneproxy = Free-Kategorie, nur lesen
+  POST /api/harvest              { sources?, types?, limit }
+                                 holt Listen, dedupliziert host+port+typ
+  POST /api/check                { proxies, types?, timeout, concurrency, limit }
+                                 prüft parallel, setzt type auf den
+                                 Dialekt der funktioniert hat
+  POST /api/exchange             Server-Sent Events.
+                                 Ablauf intern:
+                                   1 Bestand laden
+                                   2 eigenen Pool prüfen
+                                   3 tote eigene löschen (force=1)
+                                   4 1proxy-Sample prüfen, NICHT schreiben
+                                   5 Listen holen
+                                   6 neue prüfen
+                                   7 lebendige als manual anlegen
+                                 Events: phase, log, removed, pushed,
+                                         push_fail, error, done
+  GET  /api/job-status           Phase/Zähler/Fehler des letzten oder
+                                 laufenden Austausch-Jobs (Diagnose).
+                                 Jeder Austausch schreibt zusätzlich
+                                 Zeilen mit [job] in die Server-Konsole.
+  POST /api/assign-providers     { providers?, count }
+                                 ordnet die besten eigenen px-*-Proxies
+                                 allen installierten Providern zu
+                                 (scope=provider, Scope-ID = Provider-ID
+                                 aus GET /api/providers). Prüft zur
+                                 Laufzeit, ob mehrere Proxies pro Scope
+                                 (Pool) via API möglich sind; sonst gilt
+                                 1 Proxy pro Provider (Replace-Semantik).
+                                 Liest danach die tatsächlichen
+                                 Zuweisungen zurück und loggt sie
+                                 (Verifikation).
+                                 Button: „Provider zuordnen“.
+
+Auth Richtung OmniRoute:
+  Authorization: Bearer <key>
+  x-api-key: <key>
+OmniRoute akzeptiert Dashboard-Cookie oder Management-Key
+mit manage-Scope. Ohne Key oft 401.
+
+
+══════════════════════════════════════════════════════════════════
+API-KEY-HANDLING  (warum nie auf Disk, wie neu verbinden)
+══════════════════════════════════════════════════════════════════
+
+Warum der Key NIE auf die Platte geschrieben wird:
+
+  • Der Management-Key hat volle manage-Rechte auf OmniRoute
+    (lesen, schreiben, löschen, Scope-Zuordnungen). Eine Datei mit
+    diesem Key ist ein stehendes Risiko: Der Ordner wird nach
+    Windows kopiert und landet leicht in Backups, Git oder
+    geteilten Ordnern — dort will kein Key liegen.
+
+  • Es ist die Credential des Benutzers, nicht des Tools. Das
+    Schaltwerk ist nur ein Frontend dafür und soll keine weitere
+    Kopie davon anlegen.
+
+  • Das Tool ist bewusst zustandslos (alles im RAM, keine
+    Datenbank). Ein Key-Speicher bräuchte eigene Sicherheit
+    (Permissions, Verschlüsselung, .gitignore) — Aufwand und
+    Risiko ohne Nutzen für ein lokales Werkzeug.
+
+  • Preis dafür: nach jedem Neustart einmal neu verbinden (30 s).
+    Dafür ist nichts aufzuräumen und der Key kann jederzeit in
+    OmniRoute rotiert werden (Dashboard → Endpoints), ohne dass
+    hier irgendwo eine alte Kopie liegenbleibt.
+
+Wo der Key lebt:
+
+  • Nur im RAM des laufenden server.py-Prozesses
+    (POST /api/connect, POST /api/assign-providers nutzt ihn).
+  • Er geht nur als Authorization: Bearer <key> bzw. x-api-key an
+    die konfigurierte OmniRoute-URL (Standard 127.0.0.1:20128).
+  • Server beendet (Strg+C / Reboot) → RAM weg → Key weg.
+    Nichts auf der Platte, nichts zu löschen.
+  • GET /api/meta zeigt has_key: true/false — damit ist sofort
+    sichtbar, ob gerade verbunden ist.
+
+Nach einem Neustart wieder verbinden (30 Sekunden):
+
+  1. STARTEN.bat (oder python server.py) starten.
+  2. UI unter http://127.0.0.1:8765 öffnen, oben rechts
+     OmniRoute-URL (Default http://127.0.0.1:20128) und den
+     Management-API-Key (manage-Scope) eintragen.
+  3. „Verbinden“ klicken — grüner Punkt „ok“ = Registry erreichbar,
+     Key akzeptiert.
+  4. Danach wie gewohnt: Bestand laden → Austausch starten →
+     Provider zuordnen.
+
+  Key vergessen oder rotiert? In OmniRoute unter Dashboard →
+  Endpoints einen neuen Management-API-Key mit manage-Scope
+  erzeugen und oben eintragen — /api/connect speichert ihn erneut
+  nur im RAM.
+
+Wer die Ablage trotzdem will (bewusste Abweichung):
+  Windows-Credential-Manager oder eine lokale .env, die in
+  .gitignore liegt — niemals ins Repo. Dann POST /api/connect
+  entsprechend erweitern.
+
+
+══════════════════════════════════════════════════════════════════
+OMNIROUTE-ENDPUNKTE, DIE WIR NUTZEN
+══════════════════════════════════════════════════════════════════
+
+  GET    /api/v1/management/proxies?limit=&offset=
+  POST   /api/v1/management/proxies
+         Body: name, type (http|https|socks5), host, port,
+               username, password, region, notes
+  DELETE /api/v1/management/proxies?id=<uuid>&force=1
+         force=1, sonst scheitert Löschen bei Zuweisungen
+
+  GET    /api/settings/oneproxy?action=stats
+  GET    /api/settings/oneproxy?limit=&offset=
+         nur Audit. Nicht syncen, nicht löschen, nicht rotieren.
+
+Nicht anfassen:
+  POST /api/settings/oneproxy          (Marketplace-Sync)
+  DELETE /api/settings/oneproxy
+  POST /api/settings/oneproxy/rotate
+  PUT  /api/settings/proxy             (Zuweisung global/provider/key)
+
+Hochgeladene Felder bei uns:
+  name   = px-<land>-<host>          max. 80 Zeichen
+  type   = der beim Check funktionierende Dialekt
+  notes  = proxy-exchange https_ok latency=…ms exit=…
+  region = ISO-Land falls bekannt
+
+Erkennung „das ist unserer“:
+  HARVEST_TAG = "proxy-exchange" in notes
+  ODER name startet mit "px-"
+
+
+══════════════════════════════════════════════════════════════════
+QUELLEN  (SOURCES in server.py)
+══════════════════════════════════════════════════════════════════
+
+  oneproxy           1proxy-api.aitradepulse.com /api/v1/proxies/advanced
+                     (die öffentliche Marketplace-API, nicht OmniRoute)
+  proxyscrape-http   api.proxyscrape.com/v2  protocol=http
+  proxyscrape-socks5 dasselbe, protocol=socks5
+  geonode            proxylist.geonode.com/api/proxy-list
+  speedx-http        GitHub TheSpeedX/PROXY-List  http.txt
+  monosans-http      GitHub monosans/proxy-list   proxies/http.txt
+  roosterkid-https   GitHub roosterkid/openproxylist  HTTPS_RAW.txt
+  proxifly-https     GitHub proxifly  protocols/https/data.txt
+  proxifly-socks5    GitHub proxifly  protocols/socks5/data.txt
+  proxifly           GitHub proxifly  proxies/all/data.txt
+
+Freie Listen lügen oft und sind zu 80–95 % tot.
+Deshalb nie ungeprüft nach OmniRoute schieben.
+1proxy-API mit min_quality=50 liefert oft 0 Treffer
+(ihre Scores liegen häufig bei 10–20). Wir holen is_working=true
+ohne hohe Qualitätsschwelle und prüfen selbst.
+
+
+══════════════════════════════════════════════════════════════════
+OBERFLÄCHE
+══════════════════════════════════════════════════════════════════
+
+  Verbinden          URL + Key, testet die Registry
+  Bestand laden      drei Töpfe in der linken Tabelle
+  Listen holen       rechte Tabelle, ungeprüft
+  Kandidaten prüfen  setzt Status: Ziel-HTTPS ok / nur Klartext / tot
+  Austausch starten  der ganze Ablauf als SSE, Log unten
+  Provider zuordnen  beste px-*-Proxies in die installierten Provider
+
+Häkchen OmniRoute-Typ steuern Harvest, Check und Push gemeinsam.
+Nur HTTPS-taugliche Proxies werden geschrieben.
+Reißt die SSE-Verbindung ab (z. B. Reload), holt die UI den
+Job-Status nach (GET /api/job-status) und zeigt, ob der Lauf
+weiterläuft.
+
+
+══════════════════════════════════════════════════════════════════
+ABHÄNGIGKEITEN / UMGEBUNG
+══════════════════════════════════════════════════════════════════
+
+  Python 3.11+
+  fastapi, uvicorn, httpx[socks]   (socksio für SOCKS5-Checks)
+  Windows: asyncio.WindowsSelectorEventLoopPolicy  (sonst SOCKS/httpx zickt)
+  Kein Node, kein npm, kein Docker nötig.
+
+OmniRoute-Doku, die das hier stützt:
+  docs/ops/PROXY_GUIDE.md im OmniRoute-Repo
+  GET/POST/PATCH/DELETE  /api/v1/management/proxies
+  type ∈ { http, https, socks5 }
+  source ∈ { manual, oneproxy }
+
+
+══════════════════════════════════════════════════════════════════
+BEKANNTE LÜCKEN  (hier als Nächstes andocken)
+══════════════════════════════════════════════════════════════════
+
+  • Kein Speichern von URL/Key (Absicht: Key nicht auf Disk).
+    Details + Neu-verbinden-Anleitung: Abschnitt API-KEY-HANDLING
+    weiter oben. Wer will: Windows-Credential-Manager oder eine
+    lokale .env, die in .gitignore liegt — nicht ins Repo.
+
+  • Zuweisung: POST /api/assign-providers ordnet 1 Proxy pro Provider zu
+    (bulk-assign; im OmniRoute-Code PUT, die Doku nennt POST — das
+    Schaltwerk probiert PUT und fällt auf POST zurück). Mehrfach-Pools
+    pro Scope nur, wenn die OmniRoute-Version sie via API unterstützt
+    (wird zur Laufzeit geprüft); sonst im OmniRoute-Dashboard zuordnen.
+
+  • Exchange prüft vom 1proxy-Bestand nur die ersten 80.
+    Nur Diagnose, kein Löschen.
+
+  • Kein Zeitplan / Dienst. Wer stündlich tauschen will:
+    Windows-Aufgabenplanung → STARTEN.bat ist ungeeignet
+    (öffnet Browser). Besser: python server.py im Hintergrund
+    und POST /api/exchange per curl, oder einen --once-Modus
+    in server.py ergänzen.
+
+  • SOCKS5 mit Auth war in älteren OmniRoute-Versionen
+    über undici unzuverlässig. Unser Check kann „lebendig“
+    sagen, OmniRoute intern trotzdem scheitern.
+    Bei solchen Meldungen: HTTP/HTTPS bevorzugen.
+
+  • Harvest ist auf ~140–180 Kandidaten begrenzt, Check
+    parallel 16–18. Hochdrehen geht, freie Proxies werden
+    dadurch nicht besser, nur langsamer.
+  • Jeder Einzel-Check hat eine harte Deadline (max. 15 s bzw.
+    7×Timeout), damit kein hängender Proxy den Austausch blockiert.
+
+  • Keine .exe, kein Installer, kein Autostart.
+
+  • UI hat keine Filter in den Tabellen und kein Export
+    (CSV / OmniRoute-Backup-JSON).
+
+  • IPv6-Proxies werden verworfen (Parser).
+
+
+══════════════════════════════════════════════════════════════════
+WENN IHR ETWAS ÄNDERT
+══════════════════════════════════════════════════════════════════
+
+  • source=oneproxy weiterhin nicht beschreiben.
+  • HARVEST_TAG nicht umbenennen, ohne den bestehenden Pool
+    in OmniRoute mitzumigrieren — sonst erkennt der nächste
+    Lauf die alten px-*-Einträge nicht mehr als „unsere“
+    und fasst sie entweder nicht an oder (falls ihr die
+    Namensregel löscht) fasst fremde an.
+  • type nie pauschal auf http zwingen.
+  • Windows: STARTEN.bat mit CRLF lassen.
+  • static/index.html ohne CDN lassen (Preview/Offline).
+
+
+══════════════════════════════════════════════════════════════════
+KURZ FÜR DEN NÄCHSTEN MENSCHEN
+══════════════════════════════════════════════════════════════════
+
+Du baust weiter an einem lokalen Austauschschalter zwischen
+öffentlichen Free-Proxy-Listen und dem manuellen OmniRoute-
+Register. Credits, 1proxy und die Proxies des Benutzers sind
+tabu. Der Typ muss der echte Dialekt sein. Windows 10 ist
+das Zielsystem. Alles Wesentliche steckt in server.py und
+static/index.html. STARTEN.bat ist nur der Zünder.

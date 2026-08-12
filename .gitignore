@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Laufzeit-Dateien
+*.log
+*.mp3
+pgpt.log
+pgpt.err.log
+
+# Arbeitsumgebung & Brain-Doku (nicht versioniert)
+.freebuff/
+Chats/
+archive/
+Arena Wrap.code-workspace
+
+# Gesperrter leerer Restordner auf Root-Ebene (nach Freigabe löschen)
+/omni-proxy-exchange/

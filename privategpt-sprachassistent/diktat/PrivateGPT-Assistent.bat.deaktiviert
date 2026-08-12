@@ -1,0 +1,13 @@
+@echo off
+rem PrivateGPT Sprach-Assistent - Autostart beim Windows-Anmelden
+rem Startet private-gpt (falls noetig) und den unsichtbaren Hotkey-Listener.
+rem
+rem AKTUELL DEAKTIVIERT (config-seitig aus) - zum Reaktivieren:
+rem   diese Datei in den Startup-Ordner kopieren:
+rem   %APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\
+
+rem private-gpt sicherstellen (startet bei Bedarf auch Ollama)
+start "" powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\Hansi\Arena Wrap\privategpt-sprachassistent\start-private-gpt.ps1" -Action Start
+
+rem Hotkey-Listener unsichtbar starten (Strg+Umschalt+D, Strg+Umschalt+X)
+start "" "C:\Users\Hansi\diktat\.venv\Scripts\pythonw.exe" "C:\Users\Hansi\Arena Wrap\privategpt-sprachassistent\diktat\hotkey.py"

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Schaltwerk — OmniRoute Proxy-Austausch</title>
+  <style>
+    :root {
+      --bg: #14110e;
+      --bg-2: #1c1814;
+      --panel: #211c17;
+      --line: #3a3128;
+      --ink: #efe6d8;
+      --muted: #a89880;
+      --copper: #d08a3a;
+      --copper-2: #f0b56a;
+      --good: #7dbd6a;
+      --bad: #d36a58;
+      --warn: #d4b04a;
+      --oneproxy: #7a8aa0;
+      --mono: "IBM Plex Mono", "Source Code Pro", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+      --sans: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); }
+    body {
+      min-height: 100vh;
+      background-image:
+        radial-gradient(1200px 500px at 10% -10%, #2a2014 0%, transparent 55%),
+        linear-gradient(180deg, #18140f 0%, #12100d 100%);
+    }
+    header {
+      display: flex; justify-content: space-between; gap: 24px; align-items: flex-end;
+      padding: 28px 32px 18px; border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; flex-direction: column; gap: 6px; }
+    .eyebrow {
+      font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--copper); margin: 0;
+    }
+    h1 { font-size: 32px; font-weight: 600; letter-spacing: -.02em; margin: 0; }
+    .lede { margin: 4px 0 0; color: var(--muted); max-width: 52ch; line-height: 1.45; font-size: 15px; }
+    .conn {
+      display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; min-width: min(560px, 100%);
+      align-items: end;
+    }
+    label { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px; }
+    input, select {
+      width: 100%; background: var(--bg-2); border: 1px solid var(--line); color: var(--ink);
+      padding: 9px 10px; font-family: var(--mono); font-size: 12px; border-radius: 2px;
+    }
+    input:focus, select:focus { outline: 1px solid var(--copper); border-color: var(--copper); }
+    button {
+      font-family: var(--mono); font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+      border: 1px solid var(--copper); background: #2a1d10; color: var(--copper-2);
+      padding: 10px 14px; cursor: pointer; border-radius: 2px;
+    }
+    button:hover { background: #3a2814; }
+    button.ghost { border-color: var(--line); background: transparent; color: var(--ink); }
+    button.ghost:hover { border-color: var(--muted); }
+    button.good { border-color: #3f6a36; background: #1a2616; color: var(--good); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    main { padding: 22px 32px 48px; display: grid; gap: 18px; }
+    .notice {
+      border: 1px solid #5a3d16; background: #261c10; padding: 12px 14px;
+      font-size: 14px; color: var(--copper-2); line-height: 1.45;
+    }
+    .notice strong { color: var(--ink); }
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .stat {
+      background: var(--panel); border: 1px solid var(--line); padding: 12px 14px;
+    }
+    .stat b { display: block; font-size: 28px; font-family: var(--mono); line-height: 1; }
+    .stat span { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .stat.good b { color: var(--good); }
+    .stat.bad b { color: var(--bad); }
+    .stat.warn b { color: var(--warn); }
+    .stat.dim b { color: var(--oneproxy); }
+    .grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 16px; }
+    .panel { background: var(--panel); border: 1px solid var(--line); min-height: 420px; display: flex; flex-direction: column; }
+    .panel h2 {
+      margin: 0; padding: 12px 14px; font-size: 15px; border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    }
+    .panel h2 em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted); font-weight: 400; }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+    th { text-align: left; color: var(--muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #241e18; }
+    td { padding: 7px 10px; border-bottom: 1px solid #2c261f; vertical-align: top; }
+    tr:hover td { background: #2a231c; }
+    .scroll { overflow: auto; max-height: 520px; }
+    .pill {
+      display: inline-block; padding: 1px 6px; border: 1px solid var(--line); font-size: 10px;
+      letter-spacing: .06em; text-transform: uppercase;
+    }
+    .pill.live { color: var(--good); border-color: #3f6a36; }
+    .pill.dead { color: var(--bad); border-color: #6a3530; }
+    .pill.http { color: var(--warn); border-color: #6a5a28; }
+    .pill.one { color: var(--oneproxy); border-color: #3d4756; }
+    .pill.man { color: var(--copper-2); border-color: #6a4a22; }
+    .log {
+      font-family: var(--mono); font-size: 12px; background: #100e0b; border: 1px solid var(--line);
+      padding: 12px 14px; min-height: 140px; max-height: 220px; overflow: auto; white-space: pre-wrap;
+      color: #cfc3ad;
+    }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .types {
+      display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+      font-family: var(--mono); font-size: 12px; color: var(--ink);
+      padding: 10px 12px; border: 1px solid var(--line); background: var(--panel);
+    }
+    .types label.chk { display: flex; gap: 8px; align-items: center; margin: 0; letter-spacing: 0; text-transform: none; font-size: 13px; color: var(--ink); cursor: pointer; }
+    .types input[type=checkbox] { width: auto; accent-color: var(--copper); }
+    .types .cap { letter-spacing: .14em; text-transform: uppercase; font-size: 10px; color: var(--muted); }
+    .hint { color: var(--muted); font-size: 13px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; background: #666; }
+    .status-dot.on { background: var(--good); box-shadow: 0 0 8px #7dbd6a88; }
+    .status-dot.off { background: var(--bad); }
+    footer { padding: 8px 32px 28px; color: var(--muted); font-size: 12px; font-family: var(--mono); }
+    @media (max-width: 980px) {
+      header, .conn, .stats, .grid { display: flex; flex-direction: column; }
+      header { padding: 20px; }
+      main { padding: 16px 20px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <p class="eyebrow">Schaltwerk · OmniRoute</p>
+      <h1>Proxy-Austausch</h1>
+      <p class="lede">Freie Proxies holen, selbst prüfen, tote ersetzen. Geschrieben wird nur ins <em>manuelle</em> Register — nie in die 1proxy-/Free-Kategorie.</p>
+    </div>
+    <form class="conn" id="conn-form">
+      <div>
+        <label for="omni_url">OmniRoute URL</label>
+        <input id="omni_url" value="http://127.0.0.1:20128" autocomplete="off" />
+      </div>
+      <div>
+        <label for="api_key">Management-API-Key</label>
+        <input id="api_key" type="password" placeholder="Dashboard → Endpoints / manage-Scope" autocomplete="off" />
+      </div>
+      <button type="submit" id="btn-connect">Verbinden</button>
+    </form>
+  </header>
+
+  <main>
+    <div class="notice">
+      <strong>Typ muss stimmen.</strong>
+      OmniRoute kennt drei Dialekte — dasselbe wie beim manuellen Hinzufügen:
+      <em>HTTP</em> (Klassiker, CONNECT-Tunnel zu https://api…), 
+      <em>HTTPS</em> (Proxy selbst spricht TLS) und
+      <em>SOCKS5</em> (anderer Dialekt, Port oft 1080).
+      Falsch gewählt = tot, auch wenn IP:Port stimmt.
+      Standard ist HTTP+HTTPS. SOCKS5 extra ankreuzen, wenn die HTTP-Listen leer bleiben.
+      Geschrieben wird nur ins manuelle Register, nie in 1proxy.
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>OmniRoute</span><b id="s-link"><span class="status-dot off"></span>—</b></div>
+      <div class="stat"><span>Austausch-Pool</span><b id="s-harvest">0</b></div>
+      <div class="stat dim"><span>1proxy (nur lesen)</span><b id="s-one">0</b></div>
+      <div class="stat good"><span>HTTPS lebendig</span><b id="s-live">0</b></div>
+      <div class="stat bad"><span>Tot / ersetzt</span><b id="s-dead">0</b></div>
+    </div>
+
+    <div class="types">
+      <span class="cap">OmniRoute-Typ</span>
+      <label class="chk"><input type="checkbox" id="t-http" checked /> HTTP</label>
+      <label class="chk"><input type="checkbox" id="t-https" checked /> HTTPS</label>
+      <label class="chk"><input type="checkbox" id="t-socks5" /> SOCKS5</label>
+      <span class="hint">Nur angekreuzte Typen holen, prüfen und hochladen.</span>
+    </div>
+
+    <div class="actions">
+      <button class="ghost" id="btn-inv">Bestand laden</button>
+      <button class="ghost" id="btn-harvest">Listen holen</button>
+      <button class="ghost" id="btn-check">Kandidaten prüfen</button>
+      <button class="good" id="btn-ex">Austausch starten</button>
+      <button class="ghost" id="btn-assign">Provider zuordnen</button>
+      <span class="hint" id="phase">Bereit. Zuerst mit OmniRoute verbinden.</span>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>OmniRoute-Bestand <em id="inv-meta">noch nicht geladen</em></h2>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr><th>Host</th><th>Typ</th><th>Klasse</th><th>Status</th></tr>
+            </thead>
+            <tbody id="inv-body"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Kandidaten aus dem Netz <em id="har-meta">noch nichts geholt</em></h2>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr><th>Host</th><th>Typ</th><th>Quelle</th><th>Check</th><th>ms / IP</th></tr>
+            </thead>
+            <tbody id="har-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="log" id="log">Schaltwerk bereit.\nNeue Proxies → POST /api/v1/management/proxies (source=manual).\n1proxy wird höchstens gelesen und geprüft.</div>
+  </main>
+  <footer>Windows 10 · http://127.0.0.1:8765 · schreibt ausschließlich manuelle Proxies nach OmniRoute</footer>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const state = { candidates: [], inventory: null, live: 0, dead: 0 };
+
+    function log(line) {
+      const el = $("log");
+      const t = new Date().toLocaleTimeString("de-DE", { hour12: false });
+      el.textContent += `\n[${t}] ${line}`;
+      el.scrollTop = el.scrollHeight;
+    }
+    function setPhase(t) { $("phase").textContent = t; }
+
+    function pill(cls, text) {
+      return `<span class="pill ${cls}">${text}</span>`;
+    }
+
+    function renderInv() {
+      const inv = state.inventory;
+      const rows = [];
+      if (!inv) { $("inv-body").innerHTML = ""; return; }
+      const all = [
+        ...inv.harvest.map(p => ({...p, klass: "Austausch"})),
+        ...inv.manual.map(p => ({...p, klass: "Manuell"})),
+        ...inv.oneproxy.map(p => ({...p, klass: "1proxy"})),
+      ];
+      $("inv-meta").textContent = `${all.length} Einträge`;
+      $("s-harvest").textContent = inv.counts.harvest;
+      $("s-one").textContent = inv.counts.oneproxy;
+      for (const p of all) {
+        const klass = p.klass === "1proxy" ? pill("one", "1proxy / nur lesen")
+          : p.klass === "Austausch" ? pill("man", "Austausch")
+          : pill("", "eigene manuell");
+        const st = (p.status || "—").toString();
+        rows.push(`<tr>
+          <td>${p.host}:${p.port}</td>
+          <td>${p.type || "http"}</td>
+          <td>${klass}</td>
+          <td>${st}</td>
+        </tr>`);
+      }
+      $("inv-body").innerHTML = rows.join("") || `<tr><td colspan="4">Leer.</td></tr>`;
+    }
+
+    function selectedTypes() {
+      const t = [];
+      if ($("t-http").checked) t.push("http");
+      if ($("t-https").checked) t.push("https");
+      if ($("t-socks5").checked) t.push("socks5");
+      return t.length ? t : ["http"];
+    }
+
+    function renderCand() {
+      const rows = [];
+      let live = 0, dead = 0;
+      for (const p of state.candidates) {
+        let chk = pill("", "ungeprüft");
+        let extra = p.country || "";
+        if (p.https_ok) { chk = pill("live", "Ziel-HTTPS ok"); live++; extra = `${p.latency_ms || "—"} · ${p.exit_ip || ""}`; }
+        else if (p.ok) { chk = pill("http", "nur Klartext"); extra = p.error || extra; }
+        else if (p.checked_at) { chk = pill("dead", "tot"); dead++; extra = p.error || ""; }
+        rows.push(`<tr>
+          <td>${p.host}:${p.port}</td>
+          <td>${pill("", p.type || "http")}</td>
+          <td>${p.source || ""}</td>
+          <td>${chk}</td>
+          <td>${extra}</td>
+        </tr>`);
+      }
+      state.live = live; state.dead = dead;
+      $("s-live").textContent = live;
+      $("s-dead").textContent = dead;
+      $("har-meta").textContent = `${state.candidates.length} Kandidaten`;
+      $("har-body").innerHTML = rows.join("") || `<tr><td colspan="5">Noch keine Listen geholt.</td></tr>`;
+    }
+
+    async function connect(ev) {
+      ev.preventDefault();
+      setPhase("Verbinde …");
+      const r = await fetch("/api/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ omni_url: $("omni_url").value, api_key: $("api_key").value })
+      });
+      const data = await r.json();
+      const dot = data.ok ? "on" : "off";
+      $("s-link").innerHTML = `<span class="status-dot ${dot}"></span>${data.ok ? "ok" : "nein"}`;
+      log(data.detail || JSON.stringify(data));
+      setPhase(data.ok ? "Verbunden. Bestand kann geladen werden." : "Nicht verbunden — Harvest geht trotzdem.");
+      if (data.ok) loadInv();
+    }
+
+    async function loadInv() {
+      setPhase("Lade OmniRoute-Bestand …");
+      const r = await fetch("/api/omni/inventory");
+      if (!r.ok) {
+        const t = await r.text();
+        log("Bestand fehlgeschlagen: " + t);
+        setPhase("Bestand nicht lesbar.");
+        return;
+      }
+      state.inventory = await r.json();
+      renderInv();
+      log(`Bestand: ${state.inventory.counts.harvest} Austausch, ${state.inventory.counts.manual} eigene, ${state.inventory.counts.oneproxy} 1proxy.`);
+      setPhase("Bestand geladen.");
+    }
+
+    async function doHarvest() {
+      setPhase("Hole öffentliche Listen …");
+      const r = await fetch("/api/harvest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ limit: 180, types: selectedTypes() })
+      });
+      const data = await r.json();
+      state.candidates = data.proxies || [];
+      renderCand();
+      for (const s of data.sources || []) {
+        log(`${s.id}: ${s.found} ${s.error ? "· " + s.error : ""}`);
+      }
+      setPhase(`${data.count} Kandidaten bereit zur Prüfung.`);
+    }
+
+    async function doCheck() {
+      if (!state.candidates.length) { await doHarvest(); }
+      setPhase("Prüfe Kandidaten (HTTPS) …");
+      const r = await fetch("/api/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proxies: state.candidates, types: selectedTypes(), timeout: 7, concurrency: 18, limit: 140 })
+      });
+      const data = await r.json();
+      state.candidates = data.proxies || [];
+      renderCand();
+      log(`Prüfung: ${data.https_ok} HTTPS, ${data.http_only} nur HTTP, ${data.dead} tot.`);
+      setPhase("Prüfung fertig. Nur HTTPS-Lebendige werden geschrieben.");
+    }
+
+    async function doExchange() {
+      setPhase("Austausch läuft …");
+      log("Starte Austausch — schreibt nur manuelle Proxies.");
+      const r = await fetch("/api/exchange", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          timeout: 7,
+          concurrency: 16,
+          harvest_limit: 140,
+          max_push: 25,
+          remove_dead_harvest: true,
+          push_live: true,
+          check_oneproxy: true,
+          types: selectedTypes()
+        })
+      });
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const parts = buf.split("\n\n");
+          buf = parts.pop();
+          for (const block of parts) {
+            const ev = (block.match(/^event: (.+)$/m) || [])[1];
+            const raw = (block.match(/^data: (.+)$/m) || [])[1];
+            if (!ev || !raw) continue;
+            const data = JSON.parse(raw);
+            if (ev === "phase") setPhase(data.label);
+            if (ev === "log") log(data.text);
+            if (ev === "removed") log(`entfernt ${data.host}:${data.port}`);
+            if (ev === "pushed") log(`manuell eingetragen ${data.host}:${data.port} (${data.ms} ms)`);
+            if (ev === "push_fail") log(`Push fehlgeschlagen ${data.host}:${data.port} — ${data.error}`);
+            if (ev === "error") { log("Fehler: " + data.message); setPhase("Fehler."); }
+            if (ev === "done") {
+              $("s-dead").textContent = (data.removed || []).length;
+              log(`Fertig. Entfernt ${(data.removed||[]).length}, geschrieben ${(data.pushed||[]).length}. 1proxy tot: ${(data.oneproxy_dead||[]).length} (nicht ersetzt).`);
+              setPhase("Austausch fertig.");
+              loadInv().catch(() => {});
+            }
+          }
+        }
+      } catch (err) {
+        log("Verbindung zum Austausch abgebrochen — hole Status nach.");
+      }
+      syncJobStatus();
+    }
+
+    async function syncJobStatus() {
+      try {
+        const r = await fetch("/api/job-status");
+        if (!r.ok) return;
+        const st = await r.json();
+        if (st.running) {
+          setPhase(`Läuft: ${st.phase_label || st.phase || "…"}`);
+          log(`[Job läuft noch] ${st.phase_label || st.phase || ""} — Server macht weiter, Seite kann neu geladen werden.`);
+        } else if (st.error) {
+          log("Job-Status: Fehler — " + st.error);
+          setPhase("Austausch mit Fehler beendet.");
+        } else {
+          setPhase("Austausch fertig.");
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    async function doAssign() {
+      setPhase("Ordne Proxies den Providern zu …");
+      const r = await fetch("/api/assign-providers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count: 3 })
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        log("Zuordnung fehlgeschlagen: " + (data.detail || JSON.stringify(data)));
+        setPhase("Zuordnung fehlgeschlagen.");
+        return;
+      }
+      log(`Provider: ${(data.providers || []).join(", ")} | beste: ${(data.best || []).join(", ")}`);
+      for (const [pid, a] of Object.entries(data.assigned || {})) {
+        const pool = (a.pool || []).map(p => p.ok ? p.proxy : `${p.proxy} (${p.status})`).join(" + ");
+        const err = a.ok ? "" : ` — Fehler ${a.status} ${a.detail}`;
+        log(`Provider ${pid}: ${a.proxy}${pool ? " + " + pool : ""}${err}`);
+      }
+      if (data.pool_mode === false && data.pool_mode_reason) log(data.pool_mode_reason);
+      const ver = Object.entries(data.verified || {});
+      if (ver.length) {
+        log("Nachprüfung in OmniRoute (scope=provider):");
+        for (const [pid, items] of ver) {
+          log(`  ${pid}: ${(items || []).map(i => i.proxy || i.proxy_id).join(", ") || "(keine Zuordnung)"}`);
+        }
+      }
+      setPhase("Zuordnung fertig.");
+    }
+
+    $("conn-form").addEventListener("submit", connect);
+    $("btn-inv").addEventListener("click", loadInv);
+    $("btn-harvest").addEventListener("click", doHarvest);
+    $("btn-check").addEventListener("click", doCheck);
+    $("btn-ex").addEventListener("click", doExchange);
+    $("btn-assign").addEventListener("click", doAssign);
+    renderCand();
+  </script>
+</body>
+</html>

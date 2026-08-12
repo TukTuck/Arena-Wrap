@@ -1,0 +1,73 @@
+KaffeeKraft GmbH — Qualitätshandbuch für den Röstkopf 3000
+Version 4.2, Stand Januar 2026
+Internes Dokument — Abteilung Qualitätsmanagement, Dresden
+
+1. Einleitung und Geltungsbereich
+
+Dieses Handbuch beschreibt alle verbindlichen Wartungs-, Garantie- und Sicherheitsvorschriften für die vollautomatische Kaffeemaschine Röstkopf 3000. Es gilt für alle Kundendienst-Techniker, Händler und autorisierten Servicepartner der KaffeeKraft GmbH in Deutschland, Österreich und der Schweiz. Abweichungen von den hier beschriebenen Verfahren sind nur mit schriftlicher Genehmigung der Abteilung Qualitätsmanagement zulässig.
+
+Das Gerät Röstkopf 3000 wird seit 2019 in der KaffeeKraft-Produktionsstätte in Meißen gefertigt. Jede Maschine durchläuft vor der Auslieferung einen 72-stündigen Dauerlauftest mit 2.400 Brühzyklen. Nur Maschinen, die diesen Test ohne Fehler absolvieren, erhalten das Qualitätssiegel mit der Seriennummer.
+
+2. Technische Spezifikationen
+
+Der Röstkopf 3000 verfügt über ein keramisches Kegelmahlwerk mit 38 Mahlstufen, einen Wassertank mit 2,8 Litern Fassungsvermögen und eine Brühgruppe, die für 500.000 Brühzyklen ausgelegt ist. Die maximale Pumpenleistung beträgt 19 Bar. Das integrierte Mahlwerk ist selbstreinigend und wird nach jeweils 200 Mahlvorgängen automatisch in den Reinigungsmodus versetzt.
+
+Die Maschine unterstützt ausschließlich die App „Kaffeekraft Connect" in den Versionen 3.x und 4.x. Ältere App-Versionen werden nach dem 31. Dezember 2026 nicht mehr unterstützt. Die WLAN-Verbindung nutzt ausschließlich das 2,4-GHz-Band; ein 5-GHz-Betrieb ist nicht vorgesehen.
+
+3. Wartungsintervalle
+
+Für einen störungsfreien Betrieb gelten folgende verbindliche Wartungsintervalle:
+
+- Entkalkung: alle 3 Monate oder nach 1.200 Brühzyklen, je nachdem, was zuerst eintritt. Verwenden Sie ausschließlich das Original-Entkalkungsmittel „KalkX" der KaffeeKraft GmbH.
+- Mahlwerksreinigung: alle 6 Monate. Die Reinigung darf nur mit dem mitgelieferten Bürstenset durchgeführt werden.
+- Dichtungswechsel an der Brühgruppe: alle 24 Monate oder nach 100.000 Brühzyklen.
+- Filterwechsel: Der Aktivkohlefilter ist alle 60 Liter Brühwasser zu wechseln. Die Filterpatrone trägt die Bezeichnung AKF-60.
+
+Werden diese Intervalle nicht eingehalten, erlischt der Garantieanspruch für die betroffene Baugruppe vollständig.
+
+4. Garantiebedingungen
+
+Die KaffeeKraft GmbH gewährt auf den Röstkopf 3000 eine Herstellergarantie von 24 Monaten ab Kaufdatum. Die Garantie umfasst alle Baugruppen mit Ausnahme der Verschleißteile. Zu den Verschleißteilen zählen das Brühgruppen-Dichtungsset, der Aktivkohlefilter AKF-60 und das Mahlwerk-Keramikbett.
+
+Für gewerbliche Kunden gilt eine verlängerte Garantie von 36 Monaten, sofern die Maschine über einen autorisierten Fachhändler erworben wurde und der Wartungsvertrag „ServicePlus" abgeschlossen wurde. Der Wartungsvertrag ServicePlus kostet 129 Euro pro Jahr und beinhaltet zwei Inspektionen sowie einen 24-Stunden-Reaktionsservice an Werktagen.
+
+Sachschäden durch unsachgemäße Reinigung, die Verwendung von Fremd-Entkalkungsmitteln oder den Betrieb mit enthärtetem Wasser unter 6 Grad deutscher Härte sind von der Garantie ausgeschlossen.
+
+5. Sicherheitsvorschriften
+
+Die Maschine darf ausschließlich an eine geerdete Schutzkontakt-Steckdose angeschlossen werden. Bei einer Netzspannung außerhalb des Bereichs von 220 bis 240 Volt schaltet die interne Sicherungselektronik das Gerät automatisch ab. Der Netzstecker ist bei allen Wartungsarbeiten zu ziehen, und es muss eine Wartezeit von mindestens 90 Sekunden eingehalten werden, bevor die Brühgruppe entnommen wird.
+
+Der Wassertank darf ausschließlich mit Leitungswasser oder Wasser mit einer Härte zwischen 8 und 16 Grad deutscher Härte befüllt werden. Destilliertes Wasser führt zu Korrosion an den Heizelementen und ist strikt untersagt.
+
+6. Schulung und Zertifizierung von Servicetechnikern
+
+Jeder Servicetechniker muss vor der ersten eigenständigen Reparatur die Schulung „Röstkopf 3000 Basis" mit einer Dauer von zwei Tagen absolvieren und mit mindestens 80 Prozent der Prüfungsfragen bestehen. Die Zertifizierung ist zwei Jahre gültig und muss danach durch den Auffrischungskurs „Röstkopf 3000 Update" erneuert werden, der einen Tag dauert.
+
+Die Schulungsunterlagen werden ausschließlich über das interne Portal „KaffeeKraft Academy" bereitgestellt. Der Zugang zum Portal wird vom Team Technischer Support in Leipzig vergeben.
+
+7. Ersatzteil-Lieferzeiten
+
+Die Ersatzteilversorgung ist für alle Baugruppen des Röstkopf 3000 für einen Zeitraum von zehn Jahren nach Produktionsende sichergestellt. Aktuelle Lieferzeiten:
+
+- Mahlwerk-Keramikbett (Artikelnr. RK-3000-MK): 3 Werktage ab Werk Meißen
+- Brühgruppen-Dichtungsset (Artikelnr. RK-3000-DS): 5 Werktage
+- Heizelement 2400 Watt (Artikelnr. RK-3000-HE): 7 Werktage
+- Steuerplatine (Artikelnr. RK-3000-SP): 10 Werktage
+
+Express-Lieferungen innerhalb von 24 Stunden sind nur für das Dichtungsset und das Heizelement möglich und kosten einen Aufschlag von 39 Euro.
+
+8. Qualitätskennzahlen und Reklamationen
+
+Die Abteilung Qualitätsmanagement verfolgt die Kennzahl „Fehler pro Million Brühzyklen" (FPB). Im Geschäftsjahr 2025 lag die FPB bei 214, was einer Verbesserung von 12 Prozent gegenüber 2024 entspricht. Das Ziel für 2026 ist ein Wert von 180 FPB.
+
+Reklamationen werden über das Ticketsystem „QualiTrack" bearbeitet. Die durchschnittliche Bearbeitungszeit einer Reklamation beträgt 6,5 Werktage. Kunden mit dem Wartungsvertrag ServicePlus werden priorisiert und haben eine Bearbeitungszeit von maximal 3 Werktagen.
+
+9. Kontakt und Eskalation
+
+Erster Ansprechpartner für alle Fragen zum Röstkopf 3000 ist der Kundendienst unter der Rufnummer 0800-KAFFEEKRAFT (0800-5233355), erreichbar montags bis freitags von 8 bis 18 Uhr. Bei nicht behebbaren Störungen ist der technische Leiter Herr Jonas Reichel (Technischer Support, Leipzig) zu kontaktieren.
+
+Eskalationen an die Geschäftsleitung erfolgen ausschließlich durch den Leiter Qualitätsmanagement, Frau Dr. Annette Vogel, am Standort Dresden.
+
+10. Schlussbestimmungen
+
+Dieses Handbuch ersetzt alle vorherigen Versionen. Änderungen werden nur durch das Qualitätsmanagement der KaffeeKraft GmbH mit einer Vorankündigungsfrist von sechs Wochen wirksam. Bei Abweichungen zwischen der deutschen Originalfassung und Übersetzungen ist ausschließlich die deutsche Fassung maßgeblich.
