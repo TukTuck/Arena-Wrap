@@ -139,6 +139,36 @@ CLOUDFLARE_API_TOKEN
 Die Variablen müssen nicht gesetzt sein. Der Providerstatus bleibt dann
 `not_configured`. Ihre Werte werden weder diagnostiziert noch ausgegeben.
 
+## Optionale Doppler-Integration (Phase 9M)
+
+Doppler ist optional und dient ausschließlich als Environment-Injektor. Die
+Provider-Adapter bleiben unverändert und lesen weiterhin nur die bestehenden
+Variablen `GROQ_API_KEY` und `GOOGLE_API_KEY` über `CredentialStore` aus dem
+Prozess-Environment. Arena speichert keine Doppler-Tokens und enthält keine
+Doppler-Abhängigkeit.
+
+Die Doppler CLI war beim v0.9.0-Integrationscheck nicht installiert. Nach einer
+separaten, manuellen Doppler-Einrichtung kann der Workflow beispielsweise so
+aussehen:
+
+```powershell
+doppler run --project arena --config dev -- python arena-client/arena_launcher.py --version
+doppler run --project arena --config dev -- python arena-client/arena_launcher.py diagnostics --dry-run
+```
+
+Erwartet wird:
+
+```text
+v0.9.0
+Network Requests: 0
+```
+
+`doppler run` darf nur Variablen injizieren. Es aktiviert niemals das bestehende
+`ExternalLiveRequestGate`; ein vorhandener Key bei deaktiviertem Gate führt daher
+weiterhin zu null externen Requests. Tests verwenden ausschließlich synthetische
+Fixture-Environment-Werte. Doppler-Projektmetadaten oder lokale CLI-Artefakte
+werden nicht versioniert.
+
 ## Provider-Transport (Phase 9A/9B)
 
 Der gemeinsame Transportvertrag liegt in `arena_transport.py`:
@@ -407,6 +437,7 @@ Registry wird dabei nur geladen und auf fehlende Konfiguration geprüft.
 ## Aktueller Stand
 
 - `arena_version.py`: zentrale Anwendungsversion `v0.9.0`
+- `CredentialStore`: Environment-basierte Credentials, optional Doppler-injiziert
 - `arena_runtime.py`: standard-library-only Runtime-Abstraktion
 - `arena_launcher.py`: fail-closed Start-, Check- und Smoke-Test-Modi
 - `arena_api.py`: Arena-Produktsteuerung oberhalb der Hermes-Runtime

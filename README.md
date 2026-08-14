@@ -95,7 +95,9 @@ lokalen Ollama-Transport; Phase 9B den OpenAI-kompatiblen Groq-Fixture-Transport
 ohne automatische externe Requests. Phase 9C hält externe Requests zusätzlich
 über ein standardmäßig deaktiviertes Explicit Live Request Gate gesperrt. Der frühere
 `hermes-os/hermes.py`-Tkinter-Prototyp bleibt
-als Legacy/Prototype erhalten und ist nicht die primäre Arena UI.
+als Legacy/Prototype erhalten und ist nicht die primäre Arena UI. Doppler ist
+optional und darf ausschließlich die bestehenden Environment-Variablen für
+Provider injizieren; das ExternalLiveRequestGate bleibt unabhängig maßgeblich.
 
 ## 🚀 Kurzanleitung PrivateGPT-Nebenstrang
 
