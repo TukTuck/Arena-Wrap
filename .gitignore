@@ -1,7 +1,14 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 .venv/
+
+# Secrets and local credentials
+.env
+.env.*
+*.pem
+*.key
 
 # Laufzeit-Dateien
 *.log
@@ -17,3 +24,15 @@ Arena Wrap.code-workspace
 
 # Gesperrter leerer Restordner auf Root-Ebene (nach Freigabe löschen)
 /omni-proxy-exchange/
+
+# Arena lokaler Runtime-/Desktop-State (nicht versionieren)
+/arena-client/arena-config.json
+/arena-client/runtime/
+/arena-client/state/
+/arena-client/desktop/
+/arena-client/logs/
+/arena-client/archive/
+/arena-client/**/provider-health-history.json
+/arena-client/**/provider-alert-state.json
+/arena-client/**/provider-health-history-*.json
+/arena-client/**/provider-alert-state-*.json

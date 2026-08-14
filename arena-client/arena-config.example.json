@@ -1,0 +1,42 @@
+{
+  "arena_version": "0.9.0",
+  "hermes_version": "0.20.0",
+  "runtime_mode": "standalone",
+  "hermes_root": "../runtime/hermes-agent",
+  "hermes_home": "../state/hermes-home",
+  "desktop_user_data_dir": "../state/desktop-data",
+  "arena_state_dir": "../state/arena",
+  "python_executable": "../runtime/hermes-agent/venv/Scripts/python.exe",
+  "desktop_executable": "../desktop/Hermes.exe",
+  "backend_host": "127.0.0.1",
+  "backend_port": 0,
+  "provider": null,
+  "log_level": "info",
+  "provider_pool": {
+    "ollama_timeout": 30,
+    "openai_compatible_timeout": 30,
+    "overrides": {
+      "ollama": {
+        "enabled": true,
+        "endpoint": "http://127.0.0.1:11434",
+        "allowed_privacy_classes": ["PUBLIC", "INTERNAL", "PRIVATE", "SECRET"]
+      },
+      "groq": {
+        "enabled": true,
+        "allowed_privacy_classes": ["PUBLIC"]
+      },
+      "gemini": {
+        "enabled": true,
+        "allowed_privacy_classes": ["PUBLIC"]
+      }
+    },
+    "fallback_chains": {
+      "coding": ["ollama", "groq", "sambanova", "gemini", "openrouter", "mistral"],
+      "reasoning": ["ollama", "gemini", "sambanova", "groq", "openrouter"],
+      "general": ["gemini", "groq", "sambanova", "mistral", "ollama"],
+      "research": ["jina", "tavily", "brave", "groq"],
+      "embedding": ["voyage", "jina", "cohere", "ollama"],
+      "speech_to_text": ["groq", "deepgram", "assemblyai", "ollama"]
+    }
+  }
+}

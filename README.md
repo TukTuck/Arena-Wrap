@@ -1,5 +1,9 @@
 # Arena Wrap — Nebenstrang-Verwaltung
 
+**Arena Version:** `v0.9.0`
+
+**Status:** Stable Baseline
+
 Dieses Repo bündelt die **Nebenstränge** (Seitenprojekte) des Arena-Wrap-Projekts.
 Regel ab sofort: **Jeder Nebenstrang liegt in einem eigenen Ordner UND wird auf
 einem eigenen Branch weiterentwickelt.**
@@ -11,6 +15,21 @@ Arena Wrap/                         ← Git-Repo (Branch: main)
 │
 ├── README.md                       ← diese Übersicht
 ├── .gitignore
+├── arena-client/                   ← Stand-alone-Arena-Client-Grundlage
+│   ├── arena_launcher.py           ← fail-closed Desktop-Launcher
+│   ├── arena_runtime.py            ← Runtime-Validierung und Health-Checks
+│   ├── arena_api.py                ← Arena-Produktsteuerung
+│   ├── arena_providers.py          ← Provider Registry / Health-Metadaten
+│   ├── arena_credentials.py        ← Secret-sichere Env-Referenzen
+│   ├── arena_router.py             ← Privacy-/Capability-/Fallback-Routing
+│   ├── arena_state.py              ← eigener Arena-Metadaten-State
+│   ├── arena_projects.py           ← Projekt-Metadaten-CRUD
+│   ├── arena_sessions.py           ← Session-Metadaten-CRUD
+│   ├── arena_agents.py             ← lokale Agent-Metadaten
+│   ├── arena_app.py                ← schlanke Arena-Control-Shell
+│   ├── test_arena_client.py        ← modellfreier Test
+│   ├── arena-config.example.json   ← portable Konfigurationsvorlage
+│   └── README.md
 │
 ├── schaltwerk/                     ← NEBENSTRANG 1 · Branch: feature/schaltwerk
 │   └── omni-proxy-exchange/        ← Omni-Proxy-Server (Python, lokal)
@@ -55,6 +74,28 @@ Die Python-Umgebung (`diktat\.venv`) liegt **außerhalb des Repos** unter
 `C:\Users\Hansi\diktat\.venv` und wird von den Skripten über absolute Pfade
 referenziert. Sie ist in `.gitignore` ausgeschlossen — bei einem neuen Rechner
 wird sie neu aufgebaut (siehe `diktat/requirements.txt`-Hinweis im Ordner).
+
+## 🧭 Arena Stand-alone Client
+
+`arena-client/` ist die neue Produktgrenze für Arena. Der Launcher startet Hermes
+Desktop ausschließlich mit einem expliziten Arena-Checkout, einer eigenen
+Virtualenv, einem eigenen `HERMES_HOME` und eigenen Electron-Daten. Fehlt ein
+Pfad, bricht er ab; globale Hermes-Defaults werden nicht verwendet.
+
+```powershell
+cd arena-client
+python arena_launcher.py --config arena-config.json --check
+python arena_launcher.py --config arena-config.json --smoke --json
+```
+
+Die portable Runtime-Struktur, der Provider-Pool und alle Voraussetzungen stehen in
+`arena-client/README.md`. Phase 8 registriert Provider ohne Keys anzulegen und blockiert
+externe Provider standardmäßig für PRIVATE/SECRET-Daten. Phase 9A enthält den
+lokalen Ollama-Transport; Phase 9B den OpenAI-kompatiblen Groq-Fixture-Transport
+ohne automatische externe Requests. Phase 9C hält externe Requests zusätzlich
+über ein standardmäßig deaktiviertes Explicit Live Request Gate gesperrt. Der frühere
+`hermes-os/hermes.py`-Tkinter-Prototyp bleibt
+als Legacy/Prototype erhalten und ist nicht die primäre Arena UI.
 
 ## 🚀 Kurzanleitung PrivateGPT-Nebenstrang
 
