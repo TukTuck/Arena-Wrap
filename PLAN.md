@@ -81,3 +81,23 @@ Konkret für den nächsten Schritt:
 - [ ] Autostart: dauerhaft aus (Status quo) oder reaktivieren?
 - [ ] Welche Ziele bekommen als Nächstes einen eigenen Branch (Bad Wolf? OmniRoute/Hermes?)
 - [ ] Soll die Brain-Doku (`archive/`) ins Repo wandern oder separat bleiben?
+
+---
+
+## 5. Hinweis — Lokale System-Abhängigkeiten
+
+> Siehe **`DEPENDENCIES.md`** (Repo-Root) — vollständige Übersicht, wer was auf dieser
+> Maschine liest/schreibt/überschreibt. Stand: 2026-08-17.
+
+Kurzfassung für die weitere Arbeit:
+
+- **Codex-chatgpt-web verwaltet den Kopf von `~/.codex/config.toml`** („Install models"
+  überschreibt `model`/`openai_base_url`/fcc/features). Vor jedem Install-models-Klick
+  oder App-Update: Config + `~/.codex-chatgpt-web/` sichern.
+- **OmniRoute:** Server = Port 20128 (Arena + Claude-Pfad), CLI-Kontext „default" = 20129.
+  Stale-Lock `~/.omniroute/server/.pid` blockiert Neustarts → bei toter PID entfernen.
+- **Bridge 17841:** nur Responses-API, verlangt Bearer (Codex `auth.json`). Tests nur über
+  den Codex CLI, nicht per curl auf `/chat/completions`.
+- **Wiederherstellung:** Quarantäne-Ordner (`~/codex-chatgpt-web-quarantine-*`) nicht löschen
+  — daraus lässt sich die ChatGPT-Login-Session zurückholen.
+- Keine Secrets in Repo-Dateien; Credentials nur über Environment/Doppler referenzieren.

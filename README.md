@@ -8,6 +8,15 @@ Dieses Repo bündelt die **Nebenstränge** (Seitenprojekte) des Arena-Wrap-Proje
 Regel ab sofort: **Jeder Nebenstrang liegt in einem eigenen Ordner UND wird auf
 einem eigenen Branch weiterentwickelt.**
 
+## 📄 Lokale System-Abhängigkeiten (Hinweis)
+
+Die Verdrahtung der lokalen Dienste — **Codex CLI ↔ ChatGPT-Web-Bridge (17841) ↔
+OmniRoute (20128) ↔ Ollama (11434)** sowie **wer was an Konfiguration überschreibt** —
+steht in **[DEPENDENCIES.md](./DEPENDENCIES.md)**. Vor Änderungen an
+`~/.codex/config.toml`, an OmniRoute oder an der Bridge bitte lesen (App-verwaltete
+Config, Stale-Lock `~/.omniroute/server/.pid`, Port-Verwechslungsgefahr 20128/20129,
+Quarantäne-Wiederherstellung).
+
 ## 📁 Struktur
 
 ```
